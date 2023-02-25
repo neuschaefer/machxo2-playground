@@ -1,2 +1,5 @@
 /settings.py
 __pycache__
+out.v
+*.bit
+*.cfg
