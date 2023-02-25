@@ -9,6 +9,7 @@ from amaranth_boards.test.blinky import Blinky
 from amaranth.back import verilog
 from led_runner import *
 from uarttest import *
+from gpiotest import *
 
 def get_design(name):
     match args.design.lower():
@@ -16,6 +17,7 @@ def get_design(name):
         case 'boringledrunner': return BoringLEDRunner()
         case 'blinky': return Blinky()
         case 'uarttest': return UARTTest()
+        case 'gpiotest': return GPIOTest()
         case _:
             print(f'Unknown design "{name}"')
             sys.exit(1)
