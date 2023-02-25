@@ -8,12 +8,14 @@ from amaranth_boards.machxo2_breakout import *
 from amaranth_boards.test.blinky import Blinky
 from amaranth.back import verilog
 from led_runner import *
+from uarttest import *
 
 def get_design(name):
     match args.design.lower():
         case 'ledrunner': return LEDRunner()
         case 'boringledrunner': return BoringLEDRunner()
         case 'blinky': return Blinky()
+        case 'uarttest': return UARTTest()
         case _:
             print(f'Unknown design "{name}"')
             sys.exit(1)
