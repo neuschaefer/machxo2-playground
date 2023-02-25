@@ -1,5 +1,8 @@
 # MachXO2 playground
 
+
+## Amaranth examples
+
 ```
 $ ./build.py ledrunner
 timer length 21
@@ -22,4 +25,12 @@ Loading: [==================================================] 100.00%
 Done
 Disable configuration: DONE
 $
+```
+
+
+## Minimal prjtrellis example
+
+```
+$ make -C minimal
+...
 ```
