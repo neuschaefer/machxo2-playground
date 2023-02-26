@@ -24,15 +24,32 @@ class UARTTest(Elaboratable):
         divisor = int(platform.default_clk_frequency // 115200)
         m.submodules.uart = uart = AsyncSerial(divisor=divisor, data_bits=8, pins=platform.request('uart'))
 
-        count = Signal(range(int(platform.default_clk_frequency)))
-        m.d.comb += leds.eq(count[-len(leds):])
+        base_char = Signal(8, reset=ord('A'))
+        count = Signal(range(4))
+        paused = Signal()
+
+        timer = Signal(range(int(platform.default_clk_frequency)))
+        m.d.sync += timer.eq(timer + 1)
+        with m.If(timer[-1] | paused):
+            m.d.comb += leds.eq(base_char)
 
         # Transmit ABCDABCD...
-        m.d.comb += uart.tx.data.eq(ord('A') + count[:2])
+        m.d.comb += uart.tx.data.eq(base_char + count[:2])
 
         with m.If(uart.tx.rdy):
-            m.d.sync += uart.tx.ack.eq(1)
-            m.d.sync += count.eq(count + 1)
+            with m.If(~paused):
+                m.d.comb += uart.tx.ack.eq(1)
+                m.d.sync += count.eq(count + 1)
+
+        m.d.comb += uart.rx.ack.eq(1)
+        with m.If(uart.rx.rdy):
+            with m.Switch(uart.rx.data):
+                # Press space to pause/unpause output
+                with m.Case(ord(' ')):
+                    m.d.sync += paused.eq(~paused)
+                # Press anything else to set the base character
+                with m.Default():
+                    m.d.sync += base_char.eq(uart.rx.data)
 
         # Output to a specific pin
         pins = [ Pins('109', dir='o') ]
