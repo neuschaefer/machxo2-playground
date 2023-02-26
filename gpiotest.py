@@ -22,9 +22,6 @@ class PinMux(Elaboratable):
         self.i = Signal()
         self.pin = Signal(range(256))
         self.max_pin = Signal(range(256))
-        self.pin0 = Signal(range(10))
-        self.pin1 = Signal(range(10))
-        self.pin2 = Signal(range(10))
 
     @staticmethod
     def iter_pins(platform):
@@ -49,10 +46,6 @@ class PinMux(Elaboratable):
                         m.d.comb += p.o.eq(self.i)
                     except ResourceError as e:
                         print(e)
-
-        m.d.sync += self.pin0.eq((self.pin //   1) % 10)  # decimal!
-        m.d.sync += self.pin1.eq((self.pin //  10) % 10)
-        m.d.sync += self.pin2.eq((self.pin // 100) % 10)
 
         m.d.comb += self.max_pin.eq(max(pin_list))
 
@@ -86,17 +79,17 @@ class GPIOTest(Elaboratable):
         #   Count 0-5:
         #     print a character, wait for completion
 
-        step = Signal(range(6))
         next_pin = Signal.like(self.pin)
 
-        sequence = [
-            uart.data.eq(ord('J')),
-            uart.data.eq(ord('0') + self.pinmux.pin2),
-            uart.data.eq(ord('0') + self.pinmux.pin1),
-            uart.data.eq(ord('0') + self.pinmux.pin0),
+        sequence = [uart.data.eq(ord(c)) for c in "Pin "]
+        sequence += [
+            uart.data.eq(ord('0') + (self.pin // 100) % 10),
+            uart.data.eq(ord('0') + (self.pin //  10) % 10),
+            uart.data.eq(ord('0') + (self.pin //   1) % 10),
             uart.data.eq(ord('\r')),
             uart.data.eq(ord('\n')),
         ]
+        step = Signal(range(len(sequence)))
 
         with m.Switch(step):
             for i, op in enumerate(sequence):
@@ -115,8 +108,5 @@ class GPIOTest(Elaboratable):
             m.d.comb += next_pin.eq(self.pin + 1)
         with m.Else():
             m.d.comb += next_pin.eq(0)
-
-        leds = Cat(get_all_resources(platform, 'led'))
-        m.d.comb += leds.eq(step)
 
         return m
